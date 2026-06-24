@@ -64,3 +64,49 @@ Na oba rutera potrebno je definisati korisničko ime/lozinku i aktivirati PAP:
 "Router(config-if)# ppp authentication pap"
 
 "Router(config-if)# ppp pap sent-username R1 password cisco123"
+
+*(`username R2` predstavlja hostname suprotnog rutera, a `sent-username` je identitet koji ovaj ruter šalje drugoj strani.)*
+
+---
+
+### 8. Kako se konfiguriše CHAP autentifikacija?
+Konfiguracija je slična kao kod PAP-a, samo se koristi `ppp authentication chap` umesto `pap`, a **username mora biti hostname suprotnog rutera**, dok je lozinka identična na oba rutera:
+
+"Router(config)# username R2 password cisco123"
+
+"Router(config)# interface Serial0/0/0"
+
+"Router(config-if)# encapsulation ppp"
+
+"Router(config-if)# ppp authentication chap"
+
+*(Ovde nije potreban `sent-username`, jer CHAP automatski koristi hostname lokalnog rutera kao identitet.)*
+
+---
+
+### 9. Koje su komande za proveru PPP konfiguracije i stanja veze?
+Najvažnije komande za verifikaciju PPP-a:
+
+"Router# show interfaces serial0/0/0"
+
+"Router# show ppp"
+
+"Router# debug ppp authentication"
+
+"Router# debug ppp negotiation"
+
+- `show interfaces serial0/0/0` — prikazuje status interfejsa, enkapsulaciju (PPP), kao i status LCP-a (`LCP Open` znači da je veza uspešno uspostavljena).
+- `debug ppp authentication` — prikazuje detaljan tok autentifikacije (PAP/CHAP) u realnom vremenu, korisno za troubleshooting.
+- `debug ppp negotiation` — prikazuje pregovaranje LCP/NCP parametara prilikom uspostavljanja veze.
+
+---
+
+### 10. Šta je Multilink PPP (MLPPP) i čemu služi?
+**Multilink PPP** je proširenje PPP protokola koje omogućava da se **više fizičkih serijskih linkova** logički spoje u **jedan virtuelni link** veće propusne moći. Saobraćaj se raspoređuje (load-balansira) preko svih linkova u grupi, a sa strane viših slojeva mreže to izgleda kao da postoji samo jedna veza. Ovo se koristi kada je potrebno povećati propusni opseg WAN veze bez prelaska na skuplji, brži medijum.
+
+---
+
+### 11. Šta se dešava ako autentifikacija (PAP ili CHAP) ne uspe?
+Ukoliko autentifikacija ne uspe (npr. zbog pogrešne lozinke ili pogrešno unetog username-a), **LCP veza se ne uspostavlja** (ostaje u stanju npr. `LCP: state = Stopped` ili sl.), a interfejs ostaje u stanju **"up/down"** — fizički (Layer 1) je aktivan, ali protokol (Layer 2) nije, pa nema razmene saobraćaja preko te veze.
+
+---
